@@ -64,6 +64,24 @@ const userSchema = new mongoose.Schema({
             ref: "Post"
         }
     ],
+    blocked: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
+    plan: [
+        {
+            type: String,
+            enum: ["Free", "Premium", "Pro"],
+            default: "Free"
+        }
+    ],
+    userAward: {
+        type: String,
+        enum: ["Bronze", "Silver", "Gold"],
+        default: "Bronze"
+    }
 },
     {
         timestamps: true,

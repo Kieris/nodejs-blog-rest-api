@@ -3,12 +3,14 @@ const userRouter = require('./routes/users/userRoutes');
 const postsRouter = require('./routes/posts/postsRoutes');
 const commentsRouter = require('./routes/comments/commentsRoutes');
 const categoriesRouter = require('./routes/categories/categoriesRoutes');
+const gbErrorHandler = require('./utils/gbErrorHandler');
+
 require('dotenv').config();
 require("./config/dbConnect")
 const app = express();
 
-//Middleware
-
+//--------Middleware---------
+app.use(express.json());//pass incoming payload to req.body
 
 //---Routes---
 //User routes
@@ -24,7 +26,16 @@ app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/categories', categoriesRouter);
 
 
-//Error handlers
+//-----Error handlers------
+app.use(gbErrorHandler);
+
+//404 error
+app.use('*', (req, res) => {
+    res.status(404).json({
+        status: "failed",
+        message: `${req.originalUrl} Route not found`
+    });
+});
 
 //Listen to server
 const PORT = process.env.PORT || 8083;
