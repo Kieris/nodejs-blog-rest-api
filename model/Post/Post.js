@@ -42,7 +42,6 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: [true, "Post image is required"]
     },
-
 },
     {
         timestamps: true,

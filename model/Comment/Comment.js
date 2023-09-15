@@ -14,8 +14,6 @@ const commentSchema = new mongoose.Schema({
         type: String,
         required: [true, "Comment description is required"]
     }
-
-
 },
     {
         timestamps: true
