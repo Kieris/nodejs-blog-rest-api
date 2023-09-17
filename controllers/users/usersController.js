@@ -299,9 +299,10 @@ const unfollowUser = async (req, res, next) => {
 
 const getAllUsers = async (req, res) => {
     try {
+        const users = await User.find();
         res.json({
-            status: success,
-            data: 'users route'
+            status: 'success',
+            data: users
         });
     } catch (error) {
         res.json(error.message);

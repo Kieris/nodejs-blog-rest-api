@@ -17,7 +17,7 @@ const isAdmin = async (req, res, next) => {
         //not authorized
         return next(appError("Invalid token. Please login.", 401));
     }
-    
+
     const user = await User.findById(decodedUser.id);
 
     if(user?.isAdmin) {
@@ -25,7 +25,6 @@ const isAdmin = async (req, res, next) => {
     } else {
         return next(appError("You are not authorized to access this route.", 403));
     }   
-
 }
 
 module.exports = isAdmin;
