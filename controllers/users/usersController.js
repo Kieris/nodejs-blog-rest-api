@@ -83,6 +83,44 @@ const getUser = async (req, res, next) => {
     }
 };
 
+const adminBlockUser = async (req, res, next) => {
+    try {
+        const userToBlock = await User.findById(req.params.id);
+
+        if (userToBlock) {
+            userToBlock.isBlocked = true;
+            await userToBlock.save();
+
+            res.json({
+                data: 'You have blocked the user'
+            });
+        } else {
+            return next(appError('User not found', 403));
+        }
+    } catch (error) {
+        next(appError(error.message));
+    }
+};
+
+const adminUnblockUser = async (req, res, next) => {
+    try {
+        const userToBlock = await User.findById(req.params.id);
+
+        if (userToBlock) {
+            userToBlock.isBlocked = false;
+            await userToBlock.save();
+
+            res.json({
+                data: 'You have unblocked the user'
+            });
+        } else {
+            return next(appError('User not found', 403));
+        }
+    } catch (error) {
+        next(appError(error.message));
+    }
+};
+
 const blockUser = async (req, res, next) => {
     try {
         const userToBlock = await User.findById(req.params.id);
@@ -333,6 +371,8 @@ module.exports = {
     registerUser,
     loginUser,
     getUser,
+    adminBlockUser,
+    adminUnblockUser,
     blockUser,
     unblockUser,
     whoViewedProfile,

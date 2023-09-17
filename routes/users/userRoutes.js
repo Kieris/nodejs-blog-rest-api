@@ -1,11 +1,13 @@
 const express = require('express');
 const storage = require('../../config/cloudinary');
 const { registerUser, loginUser, getUser, getAllUsers, deleteUser, updateUser, uploadProfilePhoto,
-    whoViewedProfile, followUser, unfollowUser, blockUser, unblockUser } = require('../../controllers/users/usersController');
+    whoViewedProfile, followUser, unfollowUser, blockUser, unblockUser, adminBlockUser, adminUnblockUser,
+} = require('../../controllers/users/usersController');
 //const isLoggedIn = require('../../middleware/isLoggedIn');
 const multer = require('multer');
 const userRouter = express.Router();
 const isLoggedIn = require('../../middleware/isLoggedIn');
+const isAdmin = require('../../middleware/isAdmin');
 
 
 //instance of multer
@@ -39,6 +41,12 @@ userRouter.get('/follow/:id', isLoggedIn, followUser);
 
 //GET/api/v1/users/unfollow/:id
 userRouter.get('/unfollow/:id', isLoggedIn, unfollowUser);
+
+//PUT/api/v1/users/adminblock/:id
+userRouter.put('/adminblock/:id', isLoggedIn, isAdmin, adminBlockUser);
+
+//PUT/api/v1/users/adminunblock/:id
+userRouter.put('/adminunblock/:id', isLoggedIn, isAdmin, adminUnblockUser);
 
 //GET/api/v1/users/block/:id
 userRouter.get('/block/:id', isLoggedIn, blockUser);
