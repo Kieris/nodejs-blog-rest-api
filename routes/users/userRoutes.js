@@ -1,6 +1,7 @@
 const express = require('express');
 const storage = require('../../config/cloudinary');
-const { registerUser, loginUser, getUser, getAllUsers, deleteUser, updateUser, uploadProfilePhoto, whoViewedProfile, followUser, unfollowUser } = require('../../controllers/users/usersController');
+const { registerUser, loginUser, getUser, getAllUsers, deleteUser, updateUser, uploadProfilePhoto,
+    whoViewedProfile, followUser, unfollowUser, blockUser, unblockUser } = require('../../controllers/users/usersController');
 //const isLoggedIn = require('../../middleware/isLoggedIn');
 const multer = require('multer');
 const userRouter = express.Router();
@@ -38,6 +39,12 @@ userRouter.get('/follow/:id', isLoggedIn, followUser);
 
 //GET/api/v1/users/unfollow/:id
 userRouter.get('/unfollow/:id', isLoggedIn, unfollowUser);
+
+//GET/api/v1/users/block/:id
+userRouter.get('/block/:id', isLoggedIn, blockUser);
+
+//GET/api/v1/users/unblock/:id
+userRouter.get('/unblock/:id', isLoggedIn, unblockUser);
 
 
 

@@ -34,12 +34,6 @@ const registerUser = async (req, res, next) => {
     }
 };
 
-/**
- * Logs in a user.
- * 
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
- */
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -78,22 +72,68 @@ const loginUser = async (req, res) => {
     }
 };
 
-/**
- * Get user profile
- * 
- * @param {object} req - The request object
- * @param {object} res - The response object
- */
-const getUser = async (req, res) => {
+const getUser = async (req, res, next) => {
     try {
         const user = await User.findById(req.userAuth);
-        // Send JSON response with success status and data
         res.json({
             data: user
         });
     } catch (error) {
+        next(appError(error.message));
+    }
+};
+
+const blockUser = async (req, res, next) => {
+    try {
+        const userToBlock = await User.findById(req.params.id);
+
+        const userWhoBlocked = await User.findById(req.userAuth);
+
+        if (userToBlock && userWhoBlocked) {
+            const isUserAlreadyBlocked = userWhoBlocked.blocked.find(blocked => blocked.toString()
+                === userToBlock._id.toString());
+            
+            if(isUserAlreadyBlocked) {
+                return next(appError('User already blocked'));
+            }
+
+            userWhoBlocked.blocked.push(userToBlock._id);
+            await userWhoBlocked.save();
+
+            res.json({
+                data: 'You have blocked the user'
+            });
+        }
+    } catch (error) {
         // Send JSON response with error message
-        res.json(error.message);
+        next(appError(error.message));
+    }
+};
+
+const unblockUser = async (req, res, next) => {
+    try {
+        const userBlocked = await User.findById(req.params.id);
+
+        const userWhoBlocked = await User.findById(req.userAuth);
+
+        if (userBlocked && userWhoBlocked) {
+            const userNotBlocked = userWhoBlocked.blocked.find(blocked => blocked.toString() === userBlocked._id.toString());
+
+            if (!userNotBlocked) {
+                return next(appError('User is not blocked'));
+            }
+
+            userWhoBlocked.blocked = userWhoBlocked.blocked.filter(blocked => blocked.toString() === userBlocked._id);
+
+            await userWhoBlocked.save();            
+
+            res.json({
+                data: 'You have unblocked the user'
+            });
+        }
+    } catch (error) {
+        // Send JSON response with error message
+        next(appError(error.message));
     }
 };
 
@@ -175,7 +215,6 @@ const followUser = async (req, res, next) => {
         next(appError(error.message));
     }
 };
-
 
 const unfollowUser = async (req, res, next) => {
     try {
@@ -294,6 +333,8 @@ module.exports = {
     registerUser,
     loginUser,
     getUser,
+    blockUser,
+    unblockUser,
     whoViewedProfile,
     followUser,
     unfollowUser,
