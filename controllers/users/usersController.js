@@ -373,7 +373,6 @@ const updateUser = async (req, res, next) => {
 };
 
 const uploadProfilePhoto = async (req, res, next) => {
-    console.log(req.file);
     try {
         //find the user to update
         const userToUpdate = await User.findById(req.userAuth);
