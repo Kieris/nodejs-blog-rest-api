@@ -1,9 +1,10 @@
 const express = require('express')
 const { createPost, getPost, getAllPosts, deletePost, updatePost } = require('../../controllers/posts/postsController');
+const isLoggedIn = require('../../middleware/isLoggedIn');
 const postsRouter = express.Router();
 
 //POST/api/v1/posts
-postsRouter.post('/', createPost);
+postsRouter.post('/', isLoggedIn, createPost);
 
 //GET/api/v1/posts/:id
 postsRouter.get('/:id', getPost);

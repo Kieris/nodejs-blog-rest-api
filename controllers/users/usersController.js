@@ -1,11 +1,15 @@
 const User = require('../../model/User/User');
+const Post = require('../../model/Post/Post');
+const Category = require('../../model/Category/Category');
+const Comment = require('../../model/Comment/Comment');
+
 const bcrypt = require('bcryptjs');
 const generateToken = require('../../utils/generateToken');
 const { AppError, appError } = require('../../utils/appError');
 
 const registerUser = async (req, res, next) => {
     try {
-        const { firstName, lastName, email, profilePhoto, password } = req.body;
+        const { firstName, lastName, email, password } = req.body;
 
         const userFound = await User.findOne({ email });
 
@@ -34,7 +38,7 @@ const registerUser = async (req, res, next) => {
     }
 };
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -42,18 +46,14 @@ const loginUser = async (req, res) => {
         const userFound = await User.findOne({ email });
 
         if (!userFound) {
-            return res.json({
-                msg: "Email or password is incorrect.",
-            });
+            next(appError("Email or password is incorrect."));
         }
 
         //Verify password
         const isPasswordMatched = await bcrypt.compare(password, userFound.password);
 
         if (!isPasswordMatched) {
-            return res.json({
-                msg: "Email or password is incorrect.",
-            });
+            next(appError("Email or password is incorrect."));
         }
 
         // Send a JSON response with a success status and a message
@@ -68,14 +68,19 @@ const loginUser = async (req, res) => {
         });
     } catch (error) {
         // Send a JSON response with the error message
-        res.json(error.message);
+        next(appError(error.message));
     }
 };
 
 const getUser = async (req, res, next) => {
     try {
-        const user = await User.findById(req.userAuth);
+        // get user and fetch posts objects
+        const user = await User.findById(req.userAuth).populate({
+            path: "posts"
+        });
+
         res.json({
+            status: "success",
             data: user
         });
     } catch (error) {
@@ -92,6 +97,7 @@ const adminBlockUser = async (req, res, next) => {
             await userToBlock.save();
 
             res.json({
+                status: "success",
                 data: 'You have blocked the user'
             });
         } else {
@@ -111,6 +117,7 @@ const adminUnblockUser = async (req, res, next) => {
             await userToBlock.save();
 
             res.json({
+                status: "success",
                 data: 'You have unblocked the user'
             });
         } else {
@@ -130,8 +137,8 @@ const blockUser = async (req, res, next) => {
         if (userToBlock && userWhoBlocked) {
             const isUserAlreadyBlocked = userWhoBlocked.blocked.find(blocked => blocked.toString()
                 === userToBlock._id.toString());
-            
-            if(isUserAlreadyBlocked) {
+
+            if (isUserAlreadyBlocked) {
                 return next(appError('User already blocked'));
             }
 
@@ -139,6 +146,7 @@ const blockUser = async (req, res, next) => {
             await userWhoBlocked.save();
 
             res.json({
+                status: "success",
                 data: 'You have blocked the user'
             });
         }
@@ -163,9 +171,10 @@ const unblockUser = async (req, res, next) => {
 
             userWhoBlocked.blocked = userWhoBlocked.blocked.filter(blocked => blocked.toString() === userBlocked._id);
 
-            await userWhoBlocked.save();            
+            await userWhoBlocked.save();
 
             res.json({
+                status: "success",
                 data: 'You have unblocked the user'
             });
         }
@@ -203,6 +212,7 @@ const whoViewedProfile = async (req, res, next) => {
                 await user.save();
 
                 res.json({
+                    status: "success",
                     data: 'You have viewed this profile.'
                 });
             }
@@ -245,6 +255,7 @@ const followUser = async (req, res, next) => {
                 await userWhoFollowed.save();
 
                 res.json({
+                    status: "success",
                     data: 'You have followed this user'
                 });
             }
@@ -284,10 +295,11 @@ const unfollowUser = async (req, res, next) => {
 
                 //add user to following user's f0ollowed list
                 userWhoUnFollowed.following = userWhoUnFollowed.following.filter(follower => follower.toString() === user._id);
-                
+
                 await userWhoUnFollowed.save();
 
                 res.json({
+                    status: "success",
                     data: 'You have unfollowed this user'
                 });
             }
@@ -297,37 +309,66 @@ const unfollowUser = async (req, res, next) => {
     }
 };
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
     try {
         const users = await User.find();
         res.json({
-            status: 'success',
+            status: "success",
             data: users
         });
     } catch (error) {
-        res.json(error.message);
+        next(appError(error.message));
     }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
     try {
+        const userToDelete = await User.findById(req.userAuth);
+
+        await Post.deleteMany({ user: req.userAuth });
+
+        await Category.deleteMany({ user: req.userAuth });
+
+        await Comment.deleteMany({ user: req.userAuth });
+
+        await userToDelete.deleteOne();
+
         res.json({
-            status: success,
-            data: 'delete user route'
+            status: "success",
+            data: 'The account has been deleted'
         });
     } catch (error) {
-        res.json(error.message);
+        next(appError(error.message));
     }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     try {
+        // Check if email is taken
+        const { email, lastName, firstName } = req.body;
+
+        if (email) {
+            const foundEmail = await User.findOne({ email });
+            if (foundEmail) {
+                return next(new AppError("Email already taken", 504));
+            }
+        }
+
+        const user = await User.findByIdAndUpdate(req.userAuth, {
+            email,
+            lastName,
+            firstName
+        }, {
+            new: true,
+            runValidators: true
+        });
+
         res.json({
-            status: success,
+            status: "success",
             data: 'update user route'
         });
     } catch (error) {
-        res.json(error.message);
+        next(appError(error.message));
     }
 };
 
@@ -359,6 +400,7 @@ const uploadProfilePhoto = async (req, res, next) => {
             );
 
             res.json({
+                status: "success",
                 data: 'You have successfully updated your profile photo'
             });
         }
@@ -367,6 +409,45 @@ const uploadProfilePhoto = async (req, res, next) => {
         next(appError(error.message));
     }
 };
+
+const updatePassword = async (req, res, next) => {
+    const { oldPassword, password } = req.body;
+
+    try {
+        if (!password || !oldPassword) {
+            return next(appError("Passwords must be defined"));
+        }
+
+        const userFound = await User.findById(req.userAuth);
+
+        //Verify password
+        const isPasswordMatched = await bcrypt.compare(oldPassword, userFound.password);
+
+        if (!isPasswordMatched) {
+            return res.json({
+                data: "Password is incorrect.",
+            });
+        }
+
+        //hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const user = await User.findByIdAndUpdate(req.userAuth, {
+            password: hashedPassword
+        }, {
+            new: true,
+            runValidators: true
+        });
+
+        res.json({
+            status: "success",
+            data: 'Password has been successfully changed.'
+        });
+    } catch (error) {
+        next(appError(error.message));
+    }
+}
 
 module.exports = {
     registerUser,
@@ -382,5 +463,6 @@ module.exports = {
     getAllUsers,
     deleteUser,
     updateUser,
-    uploadProfilePhoto
+    uploadProfilePhoto,
+    updatePassword
 };

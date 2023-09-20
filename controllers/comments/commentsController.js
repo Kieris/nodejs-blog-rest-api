@@ -1,7 +1,7 @@
 const createComment = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'Comment created'
         })
     } catch (error) {
@@ -12,7 +12,7 @@ const createComment = async (req, res) => {
 const getComment = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'get comments by id route'
         })
     } catch (error) {
@@ -23,7 +23,7 @@ const getComment = async (req, res) => {
 const deleteComment = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'delete comment route'
         })
     } catch (error) {
@@ -34,7 +34,7 @@ const deleteComment = async (req, res) => {
 const updateComment = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'update comment route'
         })
     } catch (error) {

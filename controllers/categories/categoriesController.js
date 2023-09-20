@@ -1,7 +1,7 @@
 const createCategory = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'category created'
         })
     } catch (error) {
@@ -12,7 +12,7 @@ const createCategory = async (req, res) => {
 const getCategory = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'category obtained'
         })
     } catch (error) {
@@ -23,7 +23,7 @@ const getCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'delete category route'
         })
     } catch (error) {
@@ -34,7 +34,7 @@ const deleteCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
         res.json({
-            status: success,
+            status: 'success',
             data: 'update category route'
         })
     } catch (error) {

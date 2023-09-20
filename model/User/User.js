@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Post = require('../../model/Post/Post');
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -70,13 +71,11 @@ const userSchema = new mongoose.Schema({
             ref: "User"
         }
     ],
-    plan: [
-        {
-            type: String,
-            enum: ["Free", "Premium", "Pro"],
-            default: "Free"
-        }
-    ],
+    // plan: {
+    //     type: String,
+    //     enum: ["Free", "Premium", "Pro"],
+    //     default: "Free"
+    // },
     userAward: {
         type: String,
         enum: ["Bronze", "Silver", "Gold"],
@@ -91,6 +90,78 @@ const userSchema = new mongoose.Schema({
     }
 );
 
+//---Hooks---
+
+// when user record is looked up
+userSchema.pre('findOne', async function (next) {
+    const id = this._conditions._id;
+
+    // populates posts objects anytime user is searched
+    //this.populate("posts");
+
+    const posts = await Post.find({ user: id });
+
+    if (posts.length > 0) {
+        const lastPost = posts[posts.length - 1];
+
+        const lastPostDate = new Date(lastPost.createdAt);
+
+        //add virtual property
+        userSchema.virtual('lastPostDate').get(function () {
+            return lastPostDate.toDateString();
+        });
+
+        //check for activity
+        const currDate = new Date();
+
+        const diff = (currDate - lastPostDate) / (1000 * 3600 * 24);//days since last post
+
+        const daysAgo = Math.floor(diff);
+
+        userSchema.virtual('lastActive').get(function () {
+            if (daysAgo <= 0) {
+                return "Today";
+            } else if (daysAgo == 1) {
+                return "Yesterday";
+            } else {
+                return `${daysAgo} days ago`;
+            }
+        });
+
+        if (diff > 0) {
+            userSchema.virtual('inactive').get(function () {
+                return true;
+            });
+        } else {
+            userSchema.virtual('inactive').get(function () {
+                return false;
+            });
+        }
+
+        if (posts.length < 10) {
+            await User.findByIdAndUpdate(id, {
+                userAward: "Bronze"
+            }, { new: true });
+        } else if (posts.length < 30) {
+            await User.findByIdAndUpdate(id, {
+                userAward: "Silver"
+            }, { new: true });
+        } else {
+            await User.findByIdAndUpdate(id, {
+                userAward: "Gold"
+            }, { new: true });
+        }
+    }
+    next();
+});
+
+// after record is saved
+userSchema.post('save', function (doc, next) {
+    console.log("Post user save Hook");
+    next();
+})
+
+//---Virtual Properties---
 //Get fullname
 userSchema.virtual('fullName').get(function () {
     return `${this.firstName} ${this.lastName}`;

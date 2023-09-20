@@ -1,7 +1,7 @@
 const express = require('express');
 const storage = require('../../config/cloudinary');
 const { registerUser, loginUser, getUser, getAllUsers, deleteUser, updateUser, uploadProfilePhoto,
-    whoViewedProfile, followUser, unfollowUser, blockUser, unblockUser, adminBlockUser, adminUnblockUser,
+    whoViewedProfile, followUser, unfollowUser, blockUser, unblockUser, adminBlockUser, adminUnblockUser, updatePassword,
 } = require('../../controllers/users/usersController');
 //const isLoggedIn = require('../../middleware/isLoggedIn');
 const multer = require('multer');
@@ -25,13 +25,16 @@ userRouter.get('/profile', isLoggedIn, getUser);
 userRouter.get('/profile-viewers/:id', isLoggedIn, whoViewedProfile);
 
 //GET/api/v1/users
-userRouter.get('/', getAllUsers);
+userRouter.get('/', isAdmin, getAllUsers);
 
-//DELETE/api/v1/users/:id
-userRouter.delete('/:id', deleteUser);
+//DELETE/api/v1/users
+userRouter.delete('/', isLoggedIn, deleteUser);
 
-//PUT/api/v1/users/:id
-userRouter.put('/:id', updateUser);
+//PUT/api/v1/users
+userRouter.put('/', isLoggedIn, updateUser);
+
+//PUT/api/v1/users/pass
+userRouter.put('/pass', isLoggedIn, updatePassword);
 
 //POST/api/v1/users/uploadPhoto
 userRouter.post('/uploadPhoto', isLoggedIn, upload.single('profile'), uploadProfilePhoto);
