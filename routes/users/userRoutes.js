@@ -18,7 +18,7 @@ userRouter.post('/register', registerUser);
 //POST/api/v1/users/login
 userRouter.post('/login', loginUser);
 
-//GET/api/v1/users/profile/:id
+//GET/api/v1/users/profile
 userRouter.get('/profile', isLoggedIn, getUser);
 
 //GET/api/v1/profile-viewers/:id
